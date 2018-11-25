@@ -55,14 +55,24 @@ RUN mvn -U -B org.codehaus.mojo:versions-maven-plugin:2.1:set -DgenerateBackupPo
   && apt-get clean \
   && rm -rf /tmp/* \
             /var/tmp/* \
+            /usr/local/apache-maven-3.3.9 \
+            /usr/local/apache-maven \
             /root/.m2
+
+WORKDIR /usr/local/druid
+
+RUN java \
+  -cp "lib/*" \
+  -Ddruid.extensions.directory="extensions" \
+  -Ddruid.extensions.hadoopDependenciesDir="hadoop-dependencies" \
+  io.druid.cli.Main tools pull-deps \
+  --no-default-hadoop \
+  -c "org.apache.parquet:parquet-avro:1.9.0"
 
 WORKDIR /
 
-# Setup metadata store and add sample data
-ADD sample-data.sql sample-data.sql
-RUN find /var/lib/mysql -type f -exec touch {} \; \
-      && /etc/init.d/mysql start \
+# Setup metadata store
+RUN /etc/init.d/mysql start \
       && mysql -u root -e "GRANT ALL ON druid.* TO 'druid'@'localhost' IDENTIFIED BY 'diurd'; CREATE database druid CHARACTER SET utf8;" \
       && java -cp /usr/local/druid/lib/druid-services-*-selfcontained.jar \
           -Ddruid.extensions.directory=/usr/local/druid/extensions \
@@ -71,7 +81,6 @@ RUN find /var/lib/mysql -type f -exec touch {} \; \
           org.apache.druid.cli.Main tools metadata-init \
               --connectURI="jdbc:mysql://localhost:3306/druid" \
               --user=druid --password=diurd \
-      && mysql -u root druid < sample-data.sql \
       && /etc/init.d/mysql stop
 
 # Setup supervisord
@@ -92,4 +101,5 @@ EXPOSE 3306
 EXPOSE 2181 2888 3888
 
 WORKDIR /var/lib/druid
-ENTRYPOINT export HOSTIP="$(resolveip -s $HOSTNAME)" && find /var/lib/mysql -type f -exec touch {} \; && exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+
+CMD export HOSTIP="$(resolveip -s $HOSTNAME)" && exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
