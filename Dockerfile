@@ -58,8 +58,6 @@ RUN mvn -U -B org.codehaus.mojo:versions-maven-plugin:2.1:set -DgenerateBackupPo
   && apt-get clean \
   && rm -rf /tmp/* \
             /var/tmp/* \
-            /usr/local/apache-maven-3.3.9 \
-            /usr/local/apache-maven \
             /root/.m2
 
 WORKDIR /usr/local/druid
