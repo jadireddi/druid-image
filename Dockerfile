@@ -4,6 +4,7 @@ FROM ubuntu:16.04
 ENV GITHUB_OWNER druid-io
 ENV DRUID_VERSION 0.13.0-incubating
 ENV ZOOKEEPER_VERSION 3.4.11
+ENV MYSQL_PWD Pwd123
 
 # Java 8
 RUN apt-get update \
@@ -12,6 +13,8 @@ RUN apt-get update \
       && apt-get purge --auto-remove -y software-properties-common \
       && apt-get update \
       && echo oracle-java-8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections \
+      && echo "mysql-server mysql-server/root_password password $MYSQL_PWD" | debconf-set-selections \
+      && echo "mysql-server mysql-server/root_password_again password $MYSQL_PWD" | debconf-set-selections \
       && apt-get install -y oracle-java8-installer oracle-java8-set-default \
                             mysql-server \
                             supervisor \
