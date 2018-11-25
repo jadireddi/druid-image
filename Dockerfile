@@ -1,9 +1,9 @@
-FROM ubuntu:14.04
+FROM ubuntu:16.04
 
 # Set version and github repo which you want to build from
 ENV GITHUB_OWNER druid-io
 ENV DRUID_VERSION 0.13.0-incubating
-ENV ZOOKEEPER_VERSION 3.4.10
+ENV ZOOKEEPER_VERSION 3.4.11
 
 # Java 8
 RUN apt-get update \
@@ -16,13 +16,14 @@ RUN apt-get update \
                             mysql-server \
                             supervisor \
                             git \
+                            python-pip \
       && apt-get clean \
       && rm -rf /var/cache/oracle-jdk8-installer \
       && rm -rf /var/lib/apt/lists/*
 
 # Maven
-RUN wget -q -O - http://archive.apache.org/dist/maven/maven-3/3.2.5/binaries/apache-maven-3.2.5-bin.tar.gz | tar -xzf - -C /usr/local \
-      && ln -s /usr/local/apache-maven-3.2.5 /usr/local/apache-maven \
+RUN wget -q -O - http://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz | tar -xzf - -C /usr/local \
+      && ln -s /usr/local/apache-maven-3.3.9 /usr/local/apache-maven \
       && ln -s /usr/local/apache-maven/bin/mvn /usr/local/bin/mvn
 
 # Zookeeper
@@ -54,8 +55,6 @@ RUN mvn -U -B org.codehaus.mojo:versions-maven-plugin:2.1:set -DgenerateBackupPo
   && apt-get clean \
   && rm -rf /tmp/* \
             /var/tmp/* \
-            /usr/local/apache-maven-3.2.5 \
-            /usr/local/apache-maven \
             /root/.m2
 
 WORKDIR /
